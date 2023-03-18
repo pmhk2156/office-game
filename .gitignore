@@ -61,3 +61,6 @@ Thumbs.db.meta
 
 # VS Code
 *.vscode
+
+# Assets Font （サイズが大きすぎてインポートできなかった）
+Assets/Fonts/PixelMplus12-Regular SDF.asset
