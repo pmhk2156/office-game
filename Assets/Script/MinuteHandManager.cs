@@ -18,3 +18,5 @@ public class MinuteHandManager : MonoBehaviour
         GetComponent<Transform>().localEulerAngles = new Vector3(0, 0, -360 / 60.0f * elapsedTime);
     }
 }
+
+//うんちうんち
