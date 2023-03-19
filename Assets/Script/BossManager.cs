@@ -56,7 +56,6 @@ public class BossManager : MonoBehaviour
     public static float nextSecondBossComing;
     private IEnumerator coroutine;
     private bool isBossTalking;
-    private bool canMouseClickOnBoss;
     private bool isFirstTalk;
     public static bool canTimePass;
     public static bool canUSBDrug;
@@ -64,13 +63,14 @@ public class BossManager : MonoBehaviour
 
     private string readingText;
 
+    private float messageSpeed = 0.1f;
+
     void Awake()
     {   
         confidenceValue = 0;
         nextSecondBossComing = 0f;
         coroutine = null;
         isBossTalking = false;
-        canMouseClickOnBoss = true;
         isFirstTalk = true;
         canTimePass = true;
         canUSBDrug = true;
@@ -97,8 +97,12 @@ public class BossManager : MonoBehaviour
 
 
     void Update()
-    {
-        if (nextSecondBossComing - MinuteHandManager.elapsedTime <= 1.5f && coroutine == null)
+    {   
+        if(canTimePass){
+            nextSecondBossComing  -= Time.deltaTime;
+        }
+        
+        if (nextSecondBossComing <= 1.7f && coroutine == null)
         {   
             //会話中
             isBossTalking = true;
@@ -115,23 +119,24 @@ public class BossManager : MonoBehaviour
         }
     }
 
+    private bool IsClicked()
+    {
+        if (Input.GetMouseButtonDown(0)) return true;
+        return false;
+    }
+
     private IEnumerator CreateCoroutine()
     {
         boss.gameObject.SetActive(true);
         audio_Footsteps.PlayOneShot(footsteps);
-        yield return new WaitForSeconds(1.5f);
+        yield return new WaitForSeconds(1.7f);
         audio_Footsteps.Stop();
 
         //時間を止める・USBをドラッグできなくする
         canTimePass = false;
         canUSBDrug = false;
 
-        //USBが繋がっていたらゲームオーバー
-        if(!isUSBConnected) {
-            yield return OnAction();
-        } else{
-            yield return GameOverAction();
-        }
+        yield return OnAction();
 
         //上司・ふきだしを消す
         this.bossBubbleText.text = "";
@@ -141,7 +146,6 @@ public class BossManager : MonoBehaviour
 
         //次の上司の来る時間を、信頼値に応じて設定
         if(isFirstTalk){
-            //ここはデバッグのため値を小さくしている（本来は180?）
             nextSecondBossComing  = 60f;
         }
         else if(confidenceValue <= 30){
@@ -173,6 +177,11 @@ public class BossManager : MonoBehaviour
         StartCoroutine(BossColorChange());
         yield return BossColorChange();
 
+        //USBが繋がっていたらゲームオーバー
+        if(isUSBConnected) {
+            yield return GameOverAction();
+        }
+
         //会話を表示
         if(isFirstTalk){
             for (int i = 0; i < splitText1.Length; ++i)
@@ -183,7 +192,6 @@ public class BossManager : MonoBehaviour
 
                 //showMessageが終わるまで待機
                 yield return ShowMessage(splitText1[i]);
-                canMouseClickOnBoss = false;
                 yield return new WaitUntil(() => Input.GetMouseButtonDown(0));
             }    
         } else if(confidenceValue <= 30){
@@ -195,7 +203,6 @@ public class BossManager : MonoBehaviour
                 
                 //showMessageが終わるまで待機
                 yield return ShowMessage(splitText2[i]);
-                canMouseClickOnBoss = false;
                 yield return new WaitUntil(() => Input.GetMouseButtonDown(0));
             }  
         } else if(confidenceValue <= 75 ){
@@ -207,7 +214,6 @@ public class BossManager : MonoBehaviour
                 
                 //showMessageが終わるまで待機
                 yield return ShowMessage(splitText3[i]);
-                canMouseClickOnBoss = false;
                 yield return new WaitUntil(() => Input.GetMouseButtonDown(0));
             } 
         } else if(confidenceValue < 100 ){
@@ -219,7 +225,6 @@ public class BossManager : MonoBehaviour
                 
                 //showMessageが終わるまで待機
                 yield return ShowMessage(splitText4[i]);
-                canMouseClickOnBoss = false;
                 yield return new WaitUntil(() => Input.GetMouseButtonDown(0));
             }
         } else {
@@ -231,7 +236,6 @@ public class BossManager : MonoBehaviour
                 
                 //showMessageが終わるまで待機
                 yield return ShowMessage(splitText5[i]);
-                canMouseClickOnBoss = false;
                 yield return new WaitUntil(() => Input.GetMouseButtonDown(0));
             }
         }
@@ -253,25 +257,32 @@ public class BossManager : MonoBehaviour
     //メッセージを表示する
     protected IEnumerator ShowMessage(string message)
     {   
-        canMouseClickOnBoss = true;
-        //メッセージを一文字ずつ表示
-        for(int i = 0; i <= message.Length; ++i)
+        float time = 0;
+        int readingTextWordNumber = 1;
+
+        while ( true )
         {   
-            readingText = message.Substring(0, i);
-            this.bossBubbleText.text = readingText;
-            audio_TextSound.PlayOneShot(textSound);
-
-            //一文字ごとに0.1秒待機
-            yield return new WaitForSeconds(0.1f);
-
-            if(Input.GetMouseButton(0) && canMouseClickOnBoss == true)
-            {
-                this.bossBubbleText.text = message;
-                yield break; 
-            }          
+            yield return null;
             
+            time += Time.deltaTime;
+
+            // クリックされると一気に表示
+            if ( IsClicked() ) break;
+            
+            int len = Mathf.FloorToInt ( time / messageSpeed);
+            if (len <= message.Length) {    
+                this.bossBubbleText.text = message.Substring(0, len);
+                if(readingTextWordNumber == len){
+                    audio_TextSound.PlayOneShot(textSound);
+                    readingTextWordNumber++;
+                }
+            } else {
+                break;
+            }            
         }
-        yield break;        
+        
+        this.bossBubbleText.text = message;
+        yield return null;
     }
     
     //ゲームオーバー処理
@@ -286,9 +297,9 @@ public class BossManager : MonoBehaviour
             StartCoroutine(ShowMessage(splitGameOverText[i]));
                 
             yield return ShowMessage(splitGameOverText[i]);
-            canMouseClickOnBoss = false;
             yield return new WaitUntil(() => Input.GetMouseButtonDown(0));
         }
+
         gameOverCanvas.gameObject.SetActive(true);
         StopCoroutine(coroutine);
     }

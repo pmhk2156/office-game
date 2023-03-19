@@ -90,6 +90,7 @@ public class ComputerBehavior : MonoBehaviour {
 	GameObject uSBMenuPanel;
 	[SerializeField]
 	GameObject uSBTaskPanel1;
+	
 	[SerializeField]
     Text uSBPanelText;
 	
@@ -107,9 +108,27 @@ public class ComputerBehavior : MonoBehaviour {
 	private string loadUSBText3;
     private string[] uSBText3;
 
+	[SerializeField]
+    AudioSource audio_ComputerTextSound;
+
+	[SerializeField]
+    AudioClip computerTextSound;
+
+	[SerializeField]
+	GameObject uSBTaskPanel2;
+	[SerializeField]
+	GameObject task2NextButton;
+	[SerializeField]
+	Text task2BottomText;
+	[SerializeField]
+	Slider task2ProcessBar;
+	[SerializeField]
+	Text task2NextButtonText;
+
 
 	private IEnumerator uSBCoroutine;
-	private bool canMouseClickForComputer = true;
+
+	private int task2Flag;
 
 	private string[] correctProductNumber = new string[] {"X2458FF31","X2458FF32","X2458FF33","X2458FF34","X2458FF35",
 									              "A9902CF78","A9902CF79","A9902CF80","X2458DF01","X2458DF02",
@@ -127,8 +146,9 @@ public class ComputerBehavior : MonoBehaviour {
 	                                              "8980","8480","8480","8980","10980",
 	                                              "9980","5980","2980","3280","3880",};
 	
-	public static int confidenceValue = 0;
-	private int confidenceValueDifference = 0;
+	public static int confidenceValue;
+	private int confidenceValueDifference;
+	private float computerMessageSpeed = 0.1f;
 
 	private int uSBEventFlg;
 	
@@ -234,13 +254,13 @@ public class ComputerBehavior : MonoBehaviour {
 		loadUSBText3 = uSBTextAsset3.text;
         uSBText3 = loadUSBText3.Split(char.Parse("\n"));
 
-		//イベントフラグの初期化
+		//値の初期化
 	    uSBEventFlg = 1;
+		confidenceValue = 0;
 	}
 
 	public void InputText(){
 		//信頼値、信頼値差異の初期化
-		confidenceValue = 0;
 		confidenceValueDifference = 0;
 		
 		//配列にinputFieldの内容を反映
@@ -284,12 +304,66 @@ public class ComputerBehavior : MonoBehaviour {
 				uSBMenuPanel.gameObject.SetActive(true);
 			}	
 			uSBTaskPanel1.gameObject.SetActive(false);
+			uSBTaskPanel2.gameObject.SetActive(false);
 			uSBTextPanel.gameObject.SetActive(false);
 			uSBScreenCanvas.gameObject.SetActive (false);
+
 			//コルーチンを停止して初期化
         	StopCoroutine(uSBCoroutine);
         	uSBCoroutine = null;
+			
 		}
+
+		//Task2のProcessBar
+		if(uSBTaskPanel2.activeSelf)
+		{
+			if(task2Flag == 2){
+				//ボタンを長押しでゲージを増加
+				if(Input.GetKey(KeyCode.Q)){
+					task2ProcessBar.value += Time.deltaTime;
+					if(task2ProcessBar.value == 5f){
+						task2NextButton.SetActive(true);
+					}
+				}
+				//ボタンを離した際にバーを初期化
+				if(Input.GetKeyUp(KeyCode.Q)){
+					if(task2ProcessBar.value != 5f){
+						task2ProcessBar.value = 0;
+					}
+				}
+			}
+			if(task2Flag == 3){
+				//ボタンを長押しでゲージを増加
+				if(Input.GetKey(KeyCode.A) && Input.GetKey(KeyCode.C) && Input.GetKey(KeyCode.V) && Input.GetKey(KeyCode.Y) && Input.GetKey(KeyCode.J) && Input.GetKey(KeyCode.Space)){
+					task2ProcessBar.value += Time.deltaTime;
+					if(task2ProcessBar.value == 5f){
+						task2NextButton.SetActive(true);
+					}
+				}
+				//ボタンを離した際にバーを初期化
+				if(Input.GetKeyUp(KeyCode.A) && Input.GetKeyUp(KeyCode.C) && Input.GetKeyUp(KeyCode.V) && Input.GetKeyUp(KeyCode.Y) && Input.GetKeyUp(KeyCode.J) && Input.GetKeyUp(KeyCode.Space)){
+					if(task2ProcessBar.value != 5f){
+						task2ProcessBar.value = 0;
+					}
+				}
+			}
+			if(task2Flag == 4){
+				//右クリック連打でゲージを増加
+				if(Input.GetMouseButtonUp(1)){
+					task2ProcessBar.value += 0.05f;
+				}
+				
+				if(task2ProcessBar.value == 5f){
+					task2NextButton.SetActive(true);
+				}
+			}				
+		}
+    }
+
+	private bool IsClicked()
+    {
+        if (Input.GetMouseButtonDown(0)) return true;
+        return false;
     }
 
 	private IEnumerator CreateUSBCoroutine(){
@@ -321,7 +395,6 @@ public class ComputerBehavior : MonoBehaviour {
 
             //showMessageが終わるまで待機
             yield return ShowMessage(uSBText1[i]);
-            canMouseClickForComputer = false;
             yield return new WaitUntil(() => Input.GetMouseButtonDown(0));
         }
 
@@ -350,7 +423,6 @@ public class ComputerBehavior : MonoBehaviour {
 
         	    //showMessageが終わるまで待機
         	    yield return ShowMessage(uSBText2[i]);
-        	    canMouseClickForComputer = false;
         	    yield return new WaitUntil(() => Input.GetMouseButtonDown(0));
         	}
 
@@ -378,7 +450,6 @@ public class ComputerBehavior : MonoBehaviour {
 
         	    //showMessageが終わるまで待機
         	    yield return ShowMessage(uSBText3[i]);
-        	    canMouseClickForComputer = false;
         	    yield return new WaitUntil(() => Input.GetMouseButtonDown(0));
         	}
 
@@ -393,25 +464,32 @@ public class ComputerBehavior : MonoBehaviour {
 
 	//メッセージを表示する
     protected IEnumerator ShowMessage(string message){   
+		float time = 0;
+        int readingTextWordNumber = 1;
 
-        canMouseClickForComputer = true;
-        //メッセージを一文字ずつ表示
-        for(int i = 0; i <= message.Length; ++i)
+        while ( true )
         {   
-            readingText = message.Substring(0, i);
-            this.uSBPanelText.text = readingText;
-
-            //一文字ごとに0.1秒待機
-            yield return new WaitForSeconds(0.1f);
-
-            if(Input.GetMouseButton(0) && canMouseClickForComputer == true)
-            {
-                this.uSBPanelText.text = message;
-                yield break; 
-            }          
+            yield return null;
             
+            time += Time.deltaTime;
+
+            // クリックされると一気に表示
+            if ( IsClicked() ) break;
+            
+            int len = Mathf.FloorToInt ( time / computerMessageSpeed);
+            if (len <= message.Length) {    
+                this.uSBPanelText.text = message.Substring(0, len);
+                if(readingTextWordNumber == len){
+                    audio_ComputerTextSound.PlayOneShot(computerTextSound);
+                    readingTextWordNumber++;
+                }
+            } else {
+                break;
+            }            
         }
-        yield break;        
+        
+        this.uSBPanelText.text = message;
+        yield return null;        
     }
 
 	public void OnButton1Clicked(){
@@ -439,10 +517,66 @@ public class ComputerBehavior : MonoBehaviour {
 	public void OnReturnButtonClicked(){
 		uSBMenuPanel.gameObject.SetActive(true);
 		uSBTaskPanel1.gameObject.SetActive(false);
+		uSBTaskPanel2.gameObject.SetActive(false);
+
 		if(uSBEventFlg == 3){
 			StopCoroutine(uSBCoroutine);
 			uSBCoroutine = CreateUSBCoroutine();
             StartCoroutine(uSBCoroutine);
+		}
+	}
+
+	public void OnButton2Clicked(){
+		if(task2Flag <= 4){
+			task2Flag = 1;
+			uSBMenuPanel.gameObject.SetActive(false);
+			uSBTaskPanel2.gameObject.SetActive(true);
+			if(!task2NextButton.activeSelf){
+				task2NextButton.SetActive(true);
+			}
+
+			if(task2ProcessBar.gameObject.activeSelf){
+				task2ProcessBar.gameObject.SetActive(false);
+			}
+
+			task2ProcessBar.value = 0;
+			task2BottomText.text = "次へ　をクリックしてください。";
+		} else{
+			task2BottomText.text = "インストールは完了しています。";
+		}
+
+	}
+	
+	public void OnTask2NextButtonClicked(){
+		task2Flag ++;
+
+		if(task2Flag == 2){
+			task2NextButton.SetActive(false);
+			task2ProcessBar.value = 0;
+			task2BottomText.text = "キーボードのQを長押ししてください";
+			task2ProcessBar.gameObject.SetActive(true);
+		}
+
+		if(task2Flag == 3){
+			task2NextButton.SetActive(false);
+			task2ProcessBar.value = 0;
+			task2BottomText.text = "キーボードの A,C,V,Y,J,Space を長押ししてください";
+		}
+
+		if(task2Flag == 4){
+			task2NextButton.SetActive(false);
+			task2ProcessBar.value = 0;
+			task2BottomText.text = "右クリック連打!";
+		}
+
+		if(task2Flag == 5){
+			task2NextButtonText.text = "完了";
+			task2BottomText.text = "インストールが完了しました";
+		}
+
+		if(task2Flag >= 6){
+			uSBMenuPanel.gameObject.SetActive(true);
+			uSBTaskPanel2.gameObject.SetActive(false);
 		}
 	}
 }
