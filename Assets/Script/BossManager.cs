@@ -78,17 +78,17 @@ public class BossManager : MonoBehaviour
 
         //テキスト読み込み
         loadText1 = textAsset1.text;
-        splitText1 = loadText1.Split(char.Parse("\n"));
+        splitText1 = loadText1.Split(',');
         loadText2 = textAsset2.text;
-        splitText2 = loadText2.Split(char.Parse("\n"));
+        splitText2 = loadText2.Split(',');
         loadText3 = textAsset3.text;
-        splitText3 = loadText3.Split(char.Parse("\n"));
+        splitText3 = loadText3.Split(',');
         loadText4 = textAsset4.text;
-        splitText4 = loadText4.Split(char.Parse("\n"));
+        splitText4 = loadText4.Split(',');
         loadText5 = textAsset5.text;
-        splitText5 = loadText5.Split(char.Parse("\n"));
+        splitText5 = loadText5.Split(',');
         loadGameOverText = gameOverTextAsset.text;
-        splitGameOverText = loadGameOverText.Split(char.Parse("\n"));
+        splitGameOverText = loadGameOverText.Split(',');
 
         audio_TextSound = GetComponent<AudioSource>();
         audio_Footsteps = GetComponent<AudioSource>();

@@ -155,6 +155,7 @@ public class ComputerBehavior : MonoBehaviour {
 	/*[SerializeField]
 	GameObject reCAPTCHAButton;*/
 	private int task2Flag;
+	private bool task2Finished;
 
 	//タスク3のアセット
 	[SerializeField]
@@ -177,6 +178,7 @@ public class ComputerBehavior : MonoBehaviour {
 	Text task3ButtonText;
 
 	private int task3Flag;
+	private bool task3Finished;
 
 	public static int confidenceValue;
 	private float computerMessageSpeed = 0.1f;
@@ -274,17 +276,19 @@ public class ComputerBehavior : MonoBehaviour {
 
 		//テキストアセットのロード
 		loadUSBText1 = uSBTextAsset1.text;
-        uSBText1 = loadUSBText1.Split(char.Parse("\n"));
+        uSBText1 = loadUSBText1.Split(',');
 		loadUSBText2 = uSBTextAsset2.text;
-        uSBText2 = loadUSBText2.Split(char.Parse("\n"));
+        uSBText2 = loadUSBText2.Split(',');
 		loadUSBText3 = uSBTextAsset3.text;
-        uSBText3 = loadUSBText3.Split(char.Parse("\n"));
+        uSBText3 = loadUSBText3.Split(',');
 
 		//値の初期化
 	    uSBEventFlg = 1;
 		confidenceValue = 0;
 		task2Flag = 1;
 		task3Flag = 1;
+		task2Finished = false;
+		task3Finished = true;
 	}
 	
 	//tabキーを押すと次の入力欄へ移動するメソッド
@@ -409,7 +413,6 @@ public class ComputerBehavior : MonoBehaviour {
 		} else if(uSBEventFlg == 2){
 			yield return USBAction2();
 			uSBMenuPanel.gameObject.SetActive(true);
-			uSBTaskPanel1.gameObject.SetActive(false);
 		} else if(uSBEventFlg == 3){
 			yield return USBAction3();
 		}
@@ -465,7 +468,6 @@ public class ComputerBehavior : MonoBehaviour {
 			
 			//時間を再開する
 			BossManager.canTimePass = true;
-			uSBEventFlg += 1;
 		}
 	}	
 
@@ -491,7 +493,6 @@ public class ComputerBehavior : MonoBehaviour {
 			
 			//時間を再開する
 			BossManager.canTimePass = true;
-			uSBEventFlg += 1;
 			canReadUSBText3 = false;
 		}
 	}
@@ -548,6 +549,7 @@ public class ComputerBehavior : MonoBehaviour {
 
 	}
 
+	//リターンボタンのクリック
 	public void OnReturnButtonClicked(){
 		uSBMenuPanel.gameObject.SetActive(true);
 		uSBTaskPanel1.gameObject.SetActive(false);
@@ -612,6 +614,10 @@ public class ComputerBehavior : MonoBehaviour {
 		if(task2Flag == 5){
 			task2NextButtonText.text = "完了";
 			task2BottomText.text = "インストールが完了しました";
+			if(!task2Finished){
+				uSBEventFlg +=1;
+				task2Finished = true;
+			}
 		}
 
 		if(task2Flag >= 6){
@@ -640,11 +646,6 @@ public class ComputerBehavior : MonoBehaviour {
 		task3Flag++;
 	}
 
-	public void OnreCAPTCHA(){
-		/*GameObject clickedButton =
-		GetComponent<Button>().image.color = new Color (95,169,255,255);*/
-	}
-
 	public void OnTask3BottonClicked(){
 		if(task3Flag == 2)
 		{
@@ -669,7 +670,7 @@ public class ComputerBehavior : MonoBehaviour {
 		{
 			if(task3_345InputField.text == "PASSWORD1")
 			{	
-				task3TextMessage.text = "秘密の質問：/nあなたの出身中学校の名前は？";
+				task3TextMessage.text = "秘密の質問：\nあなたの出身中学校の名前は？";
 				task3ErrorMessage.text = "";
 				task3Flag++;
 			}
@@ -687,6 +688,10 @@ public class ComputerBehavior : MonoBehaviour {
 				task3_345InputField.gameObject.SetActive(false);
 				task3ButtonText.text ="完了";
 				task3Flag++;
+				if(!task3Finished){
+					uSBEventFlg +=1;
+					task3Finished = true;
+				}
 			}
 			else
 			{
