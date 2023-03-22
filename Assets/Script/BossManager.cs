@@ -28,9 +28,13 @@ public class BossManager : MonoBehaviour
 	TextAsset gameOverTextAsset;
     
     [SerializeField]
+    AudioSource audio_BGM;
+    [SerializeField]
     AudioSource audio_TextSound;
     [SerializeField]
     AudioSource audio_Footsteps;
+
+    AudioSource[] sEs;
 
     [SerializeField]
     AudioClip textSound;
@@ -50,16 +54,18 @@ public class BossManager : MonoBehaviour
     private string loadGameOverText;
     private string[] splitGameOverText;
 
+    public float bGMVolume; 
     public float sEVolume; 
 
-    private int confidenceValue; 
     public static float nextSecondBossComing;
+    private float randomChangeBossComingTime;
+    private float randomFootstepsTime;
     private IEnumerator coroutine;
-    private bool isBossTalking;
     private bool isFirstTalk;
     public static bool canTimePass;
     public static bool canUSBDrug;
     public static bool isUSBConnected;
+        
 
     private string readingText;
 
@@ -67,10 +73,8 @@ public class BossManager : MonoBehaviour
 
     void Awake()
     {   
-        confidenceValue = 0;
         nextSecondBossComing = 0f;
         coroutine = null;
-        isBossTalking = false;
         isFirstTalk = true;
         canTimePass = true;
         canUSBDrug = true;
@@ -90,32 +94,26 @@ public class BossManager : MonoBehaviour
         loadGameOverText = gameOverTextAsset.text;
         splitGameOverText = loadGameOverText.Split(',');
 
-        audio_TextSound = GetComponent<AudioSource>();
-        audio_Footsteps = GetComponent<AudioSource>();
-
+        audio_BGM = GameObject.Find("BGM").GetComponent<AudioSource>();
+        sEs = GetComponents<AudioSource>();
+        audio_TextSound = sEs[0];
+        audio_Footsteps = sEs[1];
     }
 
 
     void Update()
     {   
-        if(canTimePass){
+        if(canTimePass)
+        {
             nextSecondBossComing  -= Time.deltaTime;
         }
         
-        if (nextSecondBossComing <= 1.7f && coroutine == null)
+        //会話中
+        if (nextSecondBossComing <= randomFootstepsTime && coroutine == null)
         {   
-            //会話中
-            isBossTalking = true;
-        }
-        
-        confidenceValue = ComputerBehavior.confidenceValue;
-
-        if (isBossTalking && coroutine == null) {
             coroutine = CreateCoroutine();        
             //コルーチンの起動
             StartCoroutine(coroutine);
-            //値を初期化
-            isBossTalking = false;
         }
     }
 
@@ -127,11 +125,11 @@ public class BossManager : MonoBehaviour
 
     private IEnumerator CreateCoroutine()
     {
-        boss.gameObject.SetActive(true);
-        audio_Footsteps.PlayOneShot(footsteps);
-        yield return new WaitForSeconds(1.7f);
-        audio_Footsteps.Stop();
+        if(!isFirstTalk){
+            yield return BossComingAudioSet(); 
+        }
 
+        boss.gameObject.SetActive(true);
         //時間を止める・USBをドラッグできなくする
         canTimePass = false;
         canUSBDrug = false;
@@ -148,27 +146,46 @@ public class BossManager : MonoBehaviour
         if(isFirstTalk){
             nextSecondBossComing  = 60f;
         }
-        else if(confidenceValue <= 30){
+        else if(ComputerBehavior.confidenceValue <= 30){
             nextSecondBossComing  = 60f;
-        } else if(confidenceValue <= 75){
+        } else if(ComputerBehavior.confidenceValue <= 75){
             nextSecondBossComing  = 90f;
-        } else if(confidenceValue < 100){
+        } else if(ComputerBehavior.confidenceValue < 100){
             nextSecondBossComing  = 120f;
         } else{
             nextSecondBossComing  = 150f;
         }
+
+        //上司が来る時間が６０秒刻みに固定するためのスクリプト
+        if(!isFirstTalk)
+        {
+            nextSecondBossComing = nextSecondBossComing - randomChangeBossComingTime + 5f;
+        }
+
         isFirstTalk = false;
+
+        //上司の来る時間がランダムに変わる
+        randomChangeBossComingTime = Random.Range(0f,10f);
+        Debug.Log(randomChangeBossComingTime);
+        nextSecondBossComing = nextSecondBossComing + randomChangeBossComingTime - 5f;
+        Debug.Log(nextSecondBossComing);
+
+        //上司の足音が鳴る時間を設定
+        randomFootstepsTime = Random.Range(5f,15f);
+
+        //BGMの音量を元に戻す
+        audio_BGM.volume = bGMVolume;
 
         //ComputerBehavior.nextTimeBossComingに値を代入
         ComputerBehavior.nextTimeBossComing = MinuteHandManager.elapsedTime + nextSecondBossComing;
 
-        //コルーチンを停止して初期化
-        StopCoroutine(coroutine);
-        coroutine = null;
-        
         //時間を動かす・USBをドラッグできる
         canTimePass = true;
         canUSBDrug = true;
+
+        //コルーチンを停止して初期化
+        StopCoroutine(coroutine);
+        coroutine = null;        
     }
 
     protected IEnumerator OnAction()
@@ -178,69 +195,84 @@ public class BossManager : MonoBehaviour
         yield return BossColorChange();
 
         //USBが繋がっていたらゲームオーバー
-        if(isUSBConnected) {
+        if(isUSBConnected) 
+        {
             yield return GameOverAction();
         }
+        else
+        {
+            //会話を表示
+            if(isFirstTalk){
+                for (int i = 0; i < splitText1.Length; ++i)
+               {            
+                    //ふきだしを表示
+                    bossBubble.gameObject.SetActive(true);
+                    StartCoroutine(ShowMessage(splitText1[i]));
 
-        //会話を表示
-        if(isFirstTalk){
-            for (int i = 0; i < splitText1.Length; ++i)
-            {            
-                //ふきだしを表示
-                bossBubble.gameObject.SetActive(true);
-                StartCoroutine(ShowMessage(splitText1[i]));
+                    //showMessageが終わるまで待機
+                    yield return ShowMessage(splitText1[i]);
+                    yield return new WaitUntil(() => Input.GetMouseButtonDown(0));
+                }    
+            } else if(ComputerBehavior.confidenceValue <= 30){
+                for (int i = 0; i < splitText2.Length; ++i)
+                {            
+                    //ふきだしを表示
+                    bossBubble.gameObject.SetActive(true);
+                    StartCoroutine(ShowMessage(splitText2[i]));
+                
+                    //showMessageが終わるまで待機
+                    yield return ShowMessage(splitText2[i]);
+                    yield return new WaitUntil(() => Input.GetMouseButtonDown(0));
+                }  
+            } else if(ComputerBehavior.confidenceValue <= 75 ){
+                for (int i = 0; i < splitText3.Length; ++i)
+                {            
+                    //ふきだしを表示
+                    bossBubble.gameObject.SetActive(true);
+                    StartCoroutine(ShowMessage(splitText3[i]));
+                
+                    //showMessageが終わるまで待機
+                    yield return ShowMessage(splitText3[i]);
+                    yield return new WaitUntil(() => Input.GetMouseButtonDown(0));
+                } 
+            } else if(ComputerBehavior.confidenceValue < 100 ){
+                for (int i = 0; i < splitText4.Length; ++i)
+                {
+                    //ふきだしを表示
+                    bossBubble.gameObject.SetActive(true);
+                    StartCoroutine(ShowMessage(splitText4[i]));
+                
+                    //showMessageが終わるまで待機
+                    yield return ShowMessage(splitText4[i]);
+                    yield return new WaitUntil(() => Input.GetMouseButtonDown(0));
+                }
+            } else {
+                for (int i = 0; i < splitText5.Length; ++i)
+                {
+                    //ふきだしを表示
+                    bossBubble.gameObject.SetActive(true);
+                    StartCoroutine(ShowMessage(splitText5[i]));
 
-                //showMessageが終わるまで待機
-                yield return ShowMessage(splitText1[i]);
-                yield return new WaitUntil(() => Input.GetMouseButtonDown(0));
-            }    
-        } else if(confidenceValue <= 30){
-            for (int i = 0; i < splitText2.Length; ++i)
-            {            
-                //ふきだしを表示
-                bossBubble.gameObject.SetActive(true);
-                StartCoroutine(ShowMessage(splitText2[i]));
-                
-                //showMessageが終わるまで待機
-                yield return ShowMessage(splitText2[i]);
-                yield return new WaitUntil(() => Input.GetMouseButtonDown(0));
-            }  
-        } else if(confidenceValue <= 75 ){
-            for (int i = 0; i < splitText3.Length; ++i)
-            {            
-                //ふきだしを表示
-                bossBubble.gameObject.SetActive(true);
-                StartCoroutine(ShowMessage(splitText3[i]));
-                
-                //showMessageが終わるまで待機
-                yield return ShowMessage(splitText3[i]);
-                yield return new WaitUntil(() => Input.GetMouseButtonDown(0));
-            } 
-        } else if(confidenceValue < 100 ){
-            for (int i = 0; i < splitText4.Length; ++i)
-            {
-                //ふきだしを表示
-                bossBubble.gameObject.SetActive(true);
-                StartCoroutine(ShowMessage(splitText4[i]));
-                
-                //showMessageが終わるまで待機
-                yield return ShowMessage(splitText4[i]);
-                yield return new WaitUntil(() => Input.GetMouseButtonDown(0));
+                    //showMessageが終わるまで待機
+                    yield return ShowMessage(splitText5[i]);
+                    yield return new WaitUntil(() => Input.GetMouseButtonDown(0));
+                }
             }
-        } else {
-            for (int i = 0; i < splitText5.Length; ++i)
-            {
-                //ふきだしを表示
-                bossBubble.gameObject.SetActive(true);
-                StartCoroutine(ShowMessage(splitText5[i]));
-                
-                //showMessageが終わるまで待機
-                yield return ShowMessage(splitText5[i]);
-                yield return new WaitUntil(() => Input.GetMouseButtonDown(0));
-            }
+            //クリックするまでキー入力を待機
+            yield break;
         }
-        //クリックするまでキー入力を待機
-        yield break;
+    }
+
+    protected IEnumerator BossComingAudioSet()
+    {       
+        audio_Footsteps.PlayOneShot(footsteps);
+        for(int i = 0; i < 4; i++)
+        {
+            audio_BGM.volume -= 0.2f * bGMVolume;
+            yield return new WaitForSeconds(0.5f);
+        }  
+        yield return new WaitForSeconds(randomFootstepsTime - 2f);
+        audio_Footsteps.Stop();
     }
     
     //上司を色づける
@@ -302,5 +334,6 @@ public class BossManager : MonoBehaviour
 
         gameOverCanvas.gameObject.SetActive(true);
         StopCoroutine(coroutine);
+        coroutine = null;
     }
 }

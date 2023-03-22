@@ -11420,7 +11420,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4558992466796555957, guid: 1863c7e7bd3cd9d4c8beb9d1564bcf0f, type: 3}
       propertyPath: m_SizeDelta.y
-      value: 58.69
+      value: 60.69
       objectReference: {fileID: 0}
     - target: {fileID: 4558992466796555957, guid: 1863c7e7bd3cd9d4c8beb9d1564bcf0f, type: 3}
       propertyPath: m_LocalPosition.x
@@ -12065,11 +12065,13 @@ MonoBehaviour:
   textAsset4: {fileID: 4900000, guid: 6db2c1f21a1ba62408aed2d2576e2e40, type: 3}
   textAsset5: {fileID: 4900000, guid: a0cb822ed359d8343ba7fb911b3008d6, type: 3}
   gameOverTextAsset: {fileID: 4900000, guid: 90f175f8afdfd5a4f8ebb14bf4746df7, type: 3}
+  audio_BGM: {fileID: 0}
   audio_TextSound: {fileID: 1223192783}
   audio_Footsteps: {fileID: 1223192784}
   textSound: {fileID: 8300000, guid: 083523714a7e95d48831165417decbc0, type: 3}
   footsteps: {fileID: 8300000, guid: a169fb9beb18ef24a93e20c9d0d1ac63, type: 3}
-  sEVolume: 0.2
+  bGMVolume: 0.3
+  sEVolume: 0.05
 --- !u!4 &1223192781
 Transform:
   m_ObjectHideFlags: 0
@@ -12193,7 +12195,7 @@ AudioSource:
   OutputAudioMixerGroup: {fileID: 0}
   m_audioClip: {fileID: 8300000, guid: a169fb9beb18ef24a93e20c9d0d1ac63, type: 3}
   m_PlayOnAwake: 0
-  m_Volume: 1
+  m_Volume: 0.5
   m_Pitch: 1
   Loop: 0
   Mute: 0
@@ -14785,7 +14787,7 @@ MonoBehaviour:
   m_HandleRect: {fileID: 933266980}
   m_Direction: 2
   m_Value: 1
-  m_Size: 0.15007429
+  m_Size: 0.14987646
   m_NumberOfSteps: 0
   m_OnValueChanged:
     m_PersistentCalls:
