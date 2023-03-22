@@ -12059,17 +12059,19 @@ MonoBehaviour:
   bossBubble: {fileID: 442290063}
   bossBubbleText: {fileID: 378121897}
   gameOverCanvas: {fileID: 323315744}
+  audio_BGM: {fileID: 2017669997}
+  audio_TextSound: {fileID: 1223192783}
+  audio_Footsteps: {fileID: 1223192784}
+  textSound: {fileID: 8300000, guid: 083523714a7e95d48831165417decbc0, type: 3}
+  footsteps: {fileID: 8300000, guid: a169fb9beb18ef24a93e20c9d0d1ac63, type: 3}
   textAsset1: {fileID: 4900000, guid: 6edc56fdcaaacc54ebdfe06887558a8a, type: 3}
   textAsset2: {fileID: 4900000, guid: 4e0ec6d95b4654841a5a3ee38000acac, type: 3}
   textAsset3: {fileID: 4900000, guid: 384695af2ce31bd49ac00453c54661eb, type: 3}
   textAsset4: {fileID: 4900000, guid: 6db2c1f21a1ba62408aed2d2576e2e40, type: 3}
   textAsset5: {fileID: 4900000, guid: a0cb822ed359d8343ba7fb911b3008d6, type: 3}
   gameOverTextAsset: {fileID: 4900000, guid: 90f175f8afdfd5a4f8ebb14bf4746df7, type: 3}
-  audio_BGM: {fileID: 0}
-  audio_TextSound: {fileID: 1223192783}
-  audio_Footsteps: {fileID: 1223192784}
-  textSound: {fileID: 8300000, guid: 083523714a7e95d48831165417decbc0, type: 3}
-  footsteps: {fileID: 8300000, guid: a169fb9beb18ef24a93e20c9d0d1ac63, type: 3}
+  gameEndText1Asset: {fileID: 4900000, guid: ad96c54002cf58c45a5b6ec191a6a4f7, type: 3}
+  gameEndText2Asset: {fileID: 4900000, guid: 1f1407a7c242f72428797bdad292049f, type: 3}
   bGMVolume: 0.3
   sEVolume: 0.05
 --- !u!4 &1223192781

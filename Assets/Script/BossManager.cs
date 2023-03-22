@@ -13,19 +13,6 @@ public class BossManager : MonoBehaviour
     Text bossBubbleText;
     [SerializeField]
     Canvas gameOverCanvas;
-
-    [SerializeField]
-	TextAsset textAsset1;
-    [SerializeField]
-	TextAsset textAsset2;
-    [SerializeField]
-	TextAsset textAsset3;
-    [SerializeField]
-	TextAsset textAsset4;
-    [SerializeField]
-	TextAsset textAsset5;
-    [SerializeField]
-	TextAsset gameOverTextAsset;
     
     [SerializeField]
     AudioSource audio_BGM;
@@ -41,6 +28,23 @@ public class BossManager : MonoBehaviour
     [SerializeField]
     AudioClip footsteps;
 
+    [SerializeField]
+	TextAsset textAsset1;
+    [SerializeField]
+	TextAsset textAsset2;
+    [SerializeField]
+	TextAsset textAsset3;
+    [SerializeField]
+	TextAsset textAsset4;
+    [SerializeField]
+	TextAsset textAsset5;
+    [SerializeField]
+	TextAsset gameOverTextAsset;
+    [SerializeField]
+    TextAsset gameEndText1Asset;
+    [SerializeField]
+    TextAsset gameEndText2Asset;
+
     private string loadText1;
     private string[] splitText1;
     private string loadText2;
@@ -53,6 +57,10 @@ public class BossManager : MonoBehaviour
     private string[] splitText5;
     private string loadGameOverText;
     private string[] splitGameOverText;
+    private string loadGameEndText1;
+    private string[] splitGameEndText1;
+    private string loadGameEndText2;
+    private string[] splitGameEndText2;
 
     public float bGMVolume; 
     public float sEVolume; 
@@ -93,6 +101,10 @@ public class BossManager : MonoBehaviour
         splitText5 = loadText5.Split(',');
         loadGameOverText = gameOverTextAsset.text;
         splitGameOverText = loadGameOverText.Split(',');
+        loadGameEndText1 = gameEndText1Asset.text;
+        splitGameEndText1 = loadGameEndText1.Split(',');
+        loadGameEndText2 = gameEndText2Asset.text;
+        splitGameEndText2 = loadGameEndText2.Split(',');
 
         audio_BGM = GameObject.Find("BGM").GetComponent<AudioSource>();
         sEs = GetComponents<AudioSource>();
@@ -109,11 +121,22 @@ public class BossManager : MonoBehaviour
         }
         
         //会話中
-        if (nextSecondBossComing <= randomFootstepsTime && coroutine == null)
+        if (nextSecondBossComing <= randomFootstepsTime && coroutine == null )
         {   
             coroutine = CreateCoroutine();        
             //コルーチンの起動
             StartCoroutine(coroutine);
+        }
+
+        if (MinuteHandManager.elapsedTime >= 600f)
+        {   
+            if(coroutine != null)
+            {
+                StopCoroutine(coroutine);
+                coroutine = null;
+            }     
+            //コルーチンの起動
+            StartCoroutine("GameEndAction");
         }
     }
 
@@ -191,7 +214,6 @@ public class BossManager : MonoBehaviour
     protected IEnumerator OnAction()
     {   
         //ボスを徐々に鮮明に
-        StartCoroutine(BossColorChange());
         yield return BossColorChange();
 
         //USBが繋がっていたらゲームオーバー
@@ -320,7 +342,6 @@ public class BossManager : MonoBehaviour
     //ゲームオーバー処理
     private IEnumerator GameOverAction()
     {
-        StartCoroutine(BossColorChange());
         yield return BossColorChange();
 
         for (int i = 0; i < splitGameOverText.Length; ++i)
@@ -335,5 +356,34 @@ public class BossManager : MonoBehaviour
         gameOverCanvas.gameObject.SetActive(true);
         StopCoroutine(coroutine);
         coroutine = null;
+    }
+
+    protected IEnumerator GameEndAction()
+    {
+        yield return BossColorChange();
+        
+        if(ComputerBehavior.confidenceValue == 100){
+            for (int i = 0; i < splitGameEndText1.Length; ++i)
+            {
+                bossBubble.gameObject.SetActive(true);
+                StartCoroutine(ShowMessage(splitGameEndText1[i]));
+
+                yield return ShowMessage(splitGameEndText1[i]);
+                yield return new WaitUntil(() => Input.GetMouseButtonDown(0));
+            }
+        }
+        else
+        {
+            for (int i = 0; i < splitGameEndText2.Length; ++i)
+            {
+                bossBubble.gameObject.SetActive(true);
+                StartCoroutine(ShowMessage(splitGameEndText2[i]));
+
+                yield return ShowMessage(splitGameEndText2[i]);
+                yield return new WaitUntil(() => Input.GetMouseButtonDown(0));
+            }
+        }
+
+        gameOverCanvas.gameObject.SetActive(true);
     }
 }
