@@ -39,6 +39,8 @@ public class BossManager : MonoBehaviour
     [SerializeField]
 	TextAsset textAsset5;
     [SerializeField]
+	TextAsset errorSoundingTextAsset;
+    [SerializeField]
 	TextAsset gameOverTextAsset;
     [SerializeField]
     TextAsset gameEndText1Asset;
@@ -61,6 +63,8 @@ public class BossManager : MonoBehaviour
     private string[] splitGameEndText1;
     private string loadGameEndText2;
     private string[] splitGameEndText2;
+    private string loadErrorSoundingText;
+    private string[] splitErrorSoundingText;
 
     public float bGMVolume; 
     public float sEVolume; 
@@ -73,7 +77,7 @@ public class BossManager : MonoBehaviour
     public static bool canTimePass;
     public static bool canUSBDrug;
     public static bool isUSBConnected;
-        
+    public static bool isErrorSounding;
 
     private string readingText;
 
@@ -87,6 +91,7 @@ public class BossManager : MonoBehaviour
         canTimePass = true;
         canUSBDrug = true;
         isUSBConnected = false;
+        isErrorSounding = false;
 
         //テキスト読み込み
         loadText1 = textAsset1.text;
@@ -99,6 +104,8 @@ public class BossManager : MonoBehaviour
         splitText4 = loadText4.Split(',');
         loadText5 = textAsset5.text;
         splitText5 = loadText5.Split(',');
+        loadErrorSoundingText = errorSoundingTextAsset.text;
+        splitErrorSoundingText = loadErrorSoundingText.Split(',');
         loadGameOverText = gameOverTextAsset.text;
         splitGameOverText = loadGameOverText.Split(',');
         loadGameEndText1 = gameEndText1Asset.text;
@@ -128,6 +135,14 @@ public class BossManager : MonoBehaviour
             StartCoroutine(coroutine);
         }
 
+        //エラー音が鳴り響いた時
+        if(isErrorSounding && coroutine == null)
+        {   
+            coroutine = ErrorSounding(); 
+            //コルーチンの起動
+            StartCoroutine(coroutine);
+        }
+
         if (MinuteHandManager.elapsedTime >= 600f)
         {   
             if(coroutine != null)
@@ -148,10 +163,13 @@ public class BossManager : MonoBehaviour
 
     private IEnumerator CreateCoroutine()
     {
-        if(!isFirstTalk){
+
+        if(!isFirstTalk)
+        {
             yield return BossComingAudioSet(); 
         }
 
+    
         boss.gameObject.SetActive(true);
         //時間を止める・USBをドラッグできなくする
         canTimePass = false;
@@ -221,7 +239,7 @@ public class BossManager : MonoBehaviour
         {
             yield return GameOverAction();
         }
-        else
+        else 
         {
             //会話を表示
             if(isFirstTalk){
@@ -246,7 +264,7 @@ public class BossManager : MonoBehaviour
                     yield return ShowMessage(splitText2[i]);
                     yield return new WaitUntil(() => Input.GetMouseButtonDown(0));
                 }  
-            } else if(ComputerBehavior.confidenceValue <= 75 ){
+            } else if(ComputerBehavior.confidenceValue <= 70 ){
                 for (int i = 0; i < splitText3.Length; ++i)
                 {            
                     //ふきだしを表示
@@ -323,7 +341,7 @@ public class BossManager : MonoBehaviour
             // クリックされると一気に表示
             if ( IsClicked() ) break;
             
-            int len = Mathf.FloorToInt ( time / messageSpeed);
+            int len = Mathf.FloorToInt (time / messageSpeed);
             if (len <= message.Length) {    
                 this.bossBubbleText.text = message.Substring(0, len);
                 if(readingTextWordNumber == len){
@@ -337,6 +355,51 @@ public class BossManager : MonoBehaviour
         
         this.bossBubbleText.text = message;
         yield return null;
+    }
+
+    private IEnumerator ErrorSounding()
+    {
+        audio_Footsteps.PlayOneShot(footsteps);
+        for(int i = 0; i < 4; i++)
+        {
+            audio_BGM.volume -= 0.2f * bGMVolume;
+            yield return new WaitForSeconds(0.5f);
+        }  
+        yield return new WaitForSeconds(2.5f);
+        audio_Footsteps.Stop();
+
+        boss.gameObject.SetActive(true);
+        //時間を止める・USBをドラッグできなくする
+        canTimePass = false;
+        canUSBDrug = false;
+
+        yield return BossColorChange();
+
+        for (int i = 0; i < splitErrorSoundingText.Length; ++i)
+        {
+            bossBubble.gameObject.SetActive(true);
+            StartCoroutine(ShowMessage(splitErrorSoundingText[i]));
+                
+            yield return ShowMessage(splitErrorSoundingText[i]);
+            yield return new WaitUntil(() => Input.GetMouseButtonDown(0));
+        }
+
+        //上司・ふきだしを消す
+        this.bossBubbleText.text = "";
+        this.bossBubble.gameObject.SetActive(false);
+        this.boss.GetComponent<SpriteRenderer>().color = new Color(1f, 1f, 1f, 0f);
+        this.boss.gameObject.SetActive(false);
+
+        //BGMの音量を元に戻す
+        audio_BGM.volume = bGMVolume;
+
+        //時間を動かす・USBをドラッグできる
+        canTimePass = true;
+        canUSBDrug = true;
+
+        //コルーチンを停止して初期化
+        StopCoroutine(coroutine);
+        coroutine = null;     
     }
     
     //ゲームオーバー処理

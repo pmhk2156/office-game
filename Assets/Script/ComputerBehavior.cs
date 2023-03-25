@@ -152,8 +152,6 @@ public class ComputerBehavior : MonoBehaviour {
 	Slider task2ProcessBar;
 	[SerializeField]
 	Text task2NextButtonText;
-	/*[SerializeField]
-	GameObject reCAPTCHAButton;*/
 	private int task2Flag;
 	private bool task2Finished;
 
@@ -179,6 +177,10 @@ public class ComputerBehavior : MonoBehaviour {
 
 	private int task3Flag;
 	private bool task3Finished;
+
+	//タスク4のアセット
+	[SerializeField]
+	GameObject uSBTask4Panel;
 
 	public static int confidenceValue;
 	private float computerMessageSpeed = 0.1f;
@@ -396,6 +398,9 @@ public class ComputerBehavior : MonoBehaviour {
 				}
 			}				
 		}
+
+		//タスク4のプロセス
+
     }
 
 	private bool IsClicked()
@@ -703,5 +708,13 @@ public class ComputerBehavior : MonoBehaviour {
 			uSBMenuPanel.gameObject.SetActive(true);
 			uSBTask3_345Panel.gameObject.SetActive(false);
 		}
+	}
+
+	public void OnButton4Clicked(){
+		uSBMenuPanel.gameObject.SetActive(false);
+		uSBTask4Panel.gameObject.SetActive(true);
+
+
+
 	}
 }
