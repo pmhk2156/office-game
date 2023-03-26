@@ -218,7 +218,7 @@ public class BossManager : MonoBehaviour
         audio_BGM.volume = bGMVolume;
 
         //ComputerBehavior.nextTimeBossComingに値を代入
-        ComputerBehavior.nextTimeBossComing = MinuteHandManager.elapsedTime + nextSecondBossComing;
+        USBScreenManager.nextTimeBossComing = MinuteHandManager.elapsedTime + nextSecondBossComing;
 
         //時間を動かす・USBをドラッグできる
         canTimePass = true;

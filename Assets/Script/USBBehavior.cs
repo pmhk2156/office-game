@@ -10,6 +10,9 @@ public class USBBehavior :  MonoBehaviour, IDragHandler, IEndDragHandler
     [SerializeField]
     GameObject connectedUSB;
 
+    [SerializeField]
+    GameObject uSBScreenCanvas;
+
     private Vector2 firstPosition;
     
     public void Awake() {
@@ -41,10 +44,16 @@ public class USBBehavior :  MonoBehaviour, IDragHandler, IEndDragHandler
             }
         }
 
-        if(BossManager.isUSBConnected){
+        if(BossManager.isUSBConnected)
+        {   
+            //USBCanvasをアクティブ化
+		    uSBScreenCanvas.gameObject.SetActive (true);
             unconnectedUSB.SetActive(false);
             connectedUSB.SetActive(true);
-        } else{
+        }
+        else
+        {   
+		    uSBScreenCanvas.gameObject.SetActive (false);
             unconnectedUSB.SetActive(true);
             connectedUSB.SetActive(false);
         }
