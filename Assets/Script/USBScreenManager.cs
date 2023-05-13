@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.SceneManagement;
 
 public class USBScreenManager : MonoBehaviour
 {   
@@ -15,6 +16,8 @@ public class USBScreenManager : MonoBehaviour
 	GameObject uSBMenuPanel;
 	[SerializeField]
     Text uSBPanelText;
+    [SerializeField]
+	GameObject cannotInputObject;
 
     //シナリオテキスト関連
 	[SerializeField]
@@ -31,6 +34,8 @@ public class USBScreenManager : MonoBehaviour
 	TextAsset buttonClickTextAsset3;
     [SerializeField]
 	TextAsset buttonClickTextAsset4;
+    [SerializeField]
+    TextAsset task4ClearTextAsset;
 
 	private string loadUSBText1;
 	private string loadUSBText2;
@@ -39,6 +44,7 @@ public class USBScreenManager : MonoBehaviour
     private string loadButtonClickText2;
     private string loadButtonClickText3;
     private string loadButtonClickText4;
+    private string loadTask4ClearText;
     private string[] uSBText1;
     private string[] uSBText2;
     private string[] uSBText3;
@@ -46,6 +52,7 @@ public class USBScreenManager : MonoBehaviour
     private string[] buttonClickText2;
     private string[] buttonClickText3;
     private string[] buttonClickText4;
+    private string[] task4ClearText;
 
 	//BGMアセット
 	[SerializeField]
@@ -56,10 +63,12 @@ public class USBScreenManager : MonoBehaviour
 	//タスク1のアセット
 	[SerializeField]
 	GameObject uSBTask1Panel;
-	[SerializeField]
-    Text timeText;
-	[SerializeField]
-    Text confidenceValueText;
+    [SerializeField]
+    Text task1BossText;
+    [SerializeField]
+    Text task1BossTextDetail;
+    [SerializeField]
+	Slider task1ConfidenceSlider;
 
 	//タスク2のアセット
 	[SerializeField]
@@ -89,7 +98,10 @@ public class USBScreenManager : MonoBehaviour
     Toggle task3Toggle;
 	
 	[SerializeField]
-	InputField task3_345InputField;
+	InputField task3_34InputField;
+    [SerializeField]
+	InputField task3_5InputField;
+    private string task3_5FixedCharacter;
 	
 	[SerializeField]
 	Text task3TextMessage;
@@ -108,16 +120,14 @@ public class USBScreenManager : MonoBehaviour
 	private float computerMessageSpeed = 0.1f;
 	private string readingText;
 
-    private bool canButtonPush;
-	public static  float nextTimeBossComing;
+    private int taskProcess;
+    public static bool canButtonPush;
 	private float nextHourBossComing;
 	private float nextMinuteBossComing;
-	private string hourStr;
-	private string minuteStr;
-	private string confidenceValueStr;
-	private bool canFirstReadUSBText1;
-	private bool canFirstReadUSBText2;
-	private bool canFirstReadUSBText3;
+    private bool firstReadUSB;
+	private bool firstReadUSBText1;
+	private bool firstReadUSBText2;
+	private bool firstReadUSBText3;
 	private bool isFirstPushUSBButton1;
 	private bool isFirstPushUSBButton2;
 	private bool isFirstPushUSBButton3;
@@ -133,6 +143,7 @@ public class USBScreenManager : MonoBehaviour
         loadButtonClickText2 = buttonClickTextAsset2.text;
         loadButtonClickText3 = buttonClickTextAsset3.text;
         loadButtonClickText4 = buttonClickTextAsset4.text;
+        loadTask4ClearText = task4ClearTextAsset.text;
         uSBText1 = loadUSBText1.Split(',');
         uSBText2 = loadUSBText2.Split(',');
         uSBText3 = loadUSBText3.Split(',');
@@ -140,15 +151,19 @@ public class USBScreenManager : MonoBehaviour
         buttonClickText2 = loadButtonClickText2.Split(',');
         buttonClickText3 = loadButtonClickText3.Split(',');
         buttonClickText4 = loadButtonClickText4.Split(',');
+        task4ClearText = loadTask4ClearText.Split(',');
 
 		//値の初期化
+        taskProcess = 1;
 		task2Flag = 1;
 		task3Flag = 1;
+        task3_5FixedCharacter = "";
 		task2Finished = false;
 		task3Finished = false;
-        canFirstReadUSBText1 = true;
-	    canFirstReadUSBText2 = false;
-        canFirstReadUSBText3 = false;
+        firstReadUSB = true;
+        firstReadUSBText1 = true;
+	    firstReadUSBText2 = false;
+        firstReadUSBText3 = false;
         isFirstPushUSBButton1 = true;
         isFirstPushUSBButton2 = true;
         isFirstPushUSBButton3 = true;
@@ -157,44 +172,64 @@ public class USBScreenManager : MonoBehaviour
 
     void OnEnable()
     {   
-        if(canFirstReadUSBText1)
+        if(firstReadUSBText1)
 		{   
-            uSBCoroutine = USBAction(uSBText1 ,canFirstReadUSBText1);
+            uSBCoroutine = USBAction(uSBText1 ,firstReadUSBText1);
 			StartCoroutine(uSBCoroutine);
-            canFirstReadUSBText1 = false;
-            canFirstReadUSBText2 = true;
+            firstReadUSBText1 = false;
+            firstReadUSBText2 = true;
 		} 
-		else if(canFirstReadUSBText2)
+		else if(firstReadUSBText2)
 		{
-			uSBCoroutine = USBAction(uSBText2 ,canFirstReadUSBText2);
+			uSBCoroutine = USBAction(uSBText2 ,firstReadUSBText2);
 			StartCoroutine(uSBCoroutine);
-            canFirstReadUSBText2 = false;
+            firstReadUSBText2 = false;
 		} 
-		else if(canFirstReadUSBText3)
+		else if(firstReadUSBText3)
 		{
-			uSBCoroutine = USBAction(uSBText3 ,canFirstReadUSBText3);
+			uSBCoroutine = USBAction(uSBText3 ,firstReadUSBText3);
 			StartCoroutine(uSBCoroutine);
-            canFirstReadUSBText3 = false;	
+            firstReadUSBText3 = false;	
 		}
     }
 
     void OnDisable()
     {   
         //次回起動した際にMenu画面を表示させる
-        if(!canFirstReadUSBText1)
+        if(!firstReadUSBText1)
         {
 		    uSBMenuPanel.gameObject.SetActive(true);
         }
+
+        if(task3Flag < 6)
+        {
+            task3Flag = 1;
+            task3Toggle.isOn = false;
+            task3TextMessage.text = "1,5,10,50,100,500,1000, ? ,\n5000,10000";
+            task3ErrorMessage.text = "";
+            task3_34InputField.text = "";
+            task3_5InputField.text = "";
+            task3_5FixedCharacter = "";
+            task3_34InputField.gameObject.SetActive(true);
+            task3_5InputField.gameObject.SetActive(false);
+
+        }
+
 		uSBTask1Panel.gameObject.SetActive(false);
 		uSBTask2Panel.gameObject.SetActive(false);
 		uSBTask3Panel.gameObject.SetActive(false);
 		uSBTask3_1Panel.gameObject.SetActive(false);
 	    uSBTask3_2Panel.gameObject.SetActive(false);
 		uSBTask3_345Panel.gameObject.SetActive(false);
-        task3Toggle.isOn = false; 
-		task3TextMessage.text = "1,5,10,50,100,500,1000, ? ,\n5000,10000";
-		task3ErrorMessage.text = "";
-		uSBTextPanel.gameObject.SetActive(false);
+        uSBTask4Panel.gameObject.SetActive(false);
+        
+
+        canButtonPush = true;
+        BossManager.canTimePass = true;
+        if(uSBTextPanel.activeSelf)
+        {
+		    uSBTextPanel.gameObject.SetActive(false);
+        }
 
 		//コルーチンを停止して初期化
 		if(uSBCoroutine != null)
@@ -263,6 +298,13 @@ public class USBScreenManager : MonoBehaviour
                 }
             }				
         }
+
+        if(Task4Manager.isTask4Clear)
+        {   
+            Task4Manager.isTask4Clear = false;
+            StartCoroutine(ShowMessages(task4ClearText));
+            taskProcess++;
+        }
     }
  
     private bool IsClicked()
@@ -289,11 +331,11 @@ public class USBScreenManager : MonoBehaviour
 		//テキストパネルを表示
 		uSBTextPanel.gameObject.SetActive(true);
         
-        //ボタンをクリックできなくする
+        //ボタンをクリックできなくする・時間を止める・USBを動かなくする・入力できなくする
         canButtonPush = false;
-
-		//時間を止める
 		BossManager.canTimePass = false;
+        BossManager.canUSBDrug = false;
+        cannotInputObject.gameObject.SetActive(true);
 
 		//メッセージ送り
 		for (int i = 0; i < message.Length; ++i)
@@ -337,12 +379,17 @@ public class USBScreenManager : MonoBehaviour
         	yield return new WaitUntil(() => Input.GetMouseButtonDown(0));
 		}
         
-		uSBTextPanel.gameObject.SetActive(false);
-			
-		//時間を再開する
-		BossManager.canTimePass = true;
-        //ボタンをクリックできるようにする
+        if(!firstReadUSB)
+        {
+		    uSBTextPanel.gameObject.SetActive(false);
+        }
+
+		//ボタンをクリックできるようにする・時間を再開する・USBを動かせる・入力可能にする
+        firstReadUSB = false;
         canButtonPush = true;
+		BossManager.canTimePass = true;
+        BossManager.canUSBDrug = true;
+        cannotInputObject.gameObject.SetActive(false);        
 	}
 
 	public void OnButton1Clicked()
@@ -359,21 +406,29 @@ public class USBScreenManager : MonoBehaviour
             uSBMenuPanel.gameObject.SetActive(false);
             uSBTask1Panel.gameObject.SetActive(true);
 
-            //時間表示の変更
-            nextHourBossComing = (float) Math.Truncate(8f + nextTimeBossComing / 60.0f);
-            nextMinuteBossComing = (float) Math.Truncate(nextTimeBossComing - 60f * (float) Math.Truncate(nextTimeBossComing / 60.0f));
-            hourStr = nextHourBossComing.ToString();
-            if(nextMinuteBossComing > 15 && nextMinuteBossComing <= 45){
-                minuteStr = "30";
-            } else {
-                minuteStr = "00";
-            }	
-            
-            timeText.text = hourStr + ":" + minuteStr;
+            if(ComputerBehavior.confidenceValue < 27 && !BossManager.isSecondTalk)
+            {
+                task1BossText.text = "評価 ✕ ";
+                task1BossTextDetail.text = "全く仕事をこなしていない";
+            }
+            else if(ComputerBehavior.confidenceValue < 48 && !BossManager.isSecondTalk)
+            {
+                task1BossText.text = "評価 △ ";
+                task1BossTextDetail.text = "仕事に取り掛かり始めた段階";
+            } 
+            else if(ComputerBehavior.confidenceValue < 105 && !BossManager.isSecondTalk)
+            {
+                task1BossText.text = "評価 〇 ";
+                task1BossTextDetail.text = "順調に仕事をこなしている\nパスワードは「PASSWORD1」";
+            }
+            else if(ComputerBehavior.confidenceValue == 105 && !BossManager.isSecondTalk)
+            {
+                task1BossText.text = "評価 ◎ ";
+                task1BossTextDetail.text = "本日の業務を完了\n優秀な人材\nパスワードは「PASSWORD1」";
+            }            
 
-            //信頼値の変更
-            confidenceValueStr = ComputerBehavior.confidenceValue.ToString();
-            confidenceValueText.text = confidenceValueStr + " / 100";
+            //信頼値ゲージ
+            task1ConfidenceSlider.value = ComputerBehavior.confidenceValue;
         }
 	}
 
@@ -418,34 +473,42 @@ public class USBScreenManager : MonoBehaviour
         {
             task2Flag ++;
 
-            if(task2Flag == 2){
+            if(task2Flag == 2)
+            {
                 task2NextButton.SetActive(false);
                 task2ProcessBar.value = 0;
                 task2BottomText.text = "キーボードのQを長押ししてください";
                 task2ProcessBar.gameObject.SetActive(true);
             }
 
-            if(task2Flag == 3){
+            if(task2Flag == 3)
+            {
                 task2NextButton.SetActive(false);
                 task2ProcessBar.value = 0;
                 task2BottomText.text = "キーボードの A,C,V,Y,J,Space を長押ししてください";
             }
 
-            if(task2Flag == 4){
+            if(task2Flag == 4)
+            {
                 task2NextButton.SetActive(false);
                 task2ProcessBar.value = 0;
                 task2BottomText.text = "右クリック連打!";
             }
 
-            if(task2Flag == 5){
+            if(task2Flag == 5)
+            {
                 task2NextButtonText.text = "完了";
                 task2BottomText.text = "インストールが完了しました";
+                firstReadUSBText3 = true;
+
                 if(!task2Finished){
                     task2Finished = true;
+                    taskProcess++;
                 }
             }
 
-            if(task2Flag >= 6){
+            if(task2Flag >= 6)
+            {
                 uSBMenuPanel.gameObject.SetActive(true);
                 uSBTask2Panel.gameObject.SetActive(false);
             }
@@ -454,7 +517,7 @@ public class USBScreenManager : MonoBehaviour
 
 	public void OnButton3Clicked()
 	{
-        if(canButtonPush)
+        if(canButtonPush && taskProcess >= 2)
         {   
             //初めてのボタンクリックでメッセージが表示
             if(isFirstPushUSBButton3)
@@ -463,8 +526,8 @@ public class USBScreenManager : MonoBehaviour
                 isFirstPushUSBButton3 = false;
             }
 
-            if(task3Flag < 5){
-                task3Flag = 1;
+            if(task3Flag < 5)
+            {            
                 uSBMenuPanel.gameObject.SetActive(false);
                 uSBTask3Panel.gameObject.SetActive(true);	
                 uSBTask3_1Panel.gameObject.SetActive(true);	
@@ -503,10 +566,11 @@ public class USBScreenManager : MonoBehaviour
             }
             else if (task3Flag == 3)
             {
-                if(task3_345InputField.text == "2000")
+                if(task3_34InputField.text == "2000")
                 {	
                     task3TextMessage.text = "パスワードを入力してください";
                     task3ErrorMessage.text = "";
+                    task3_34InputField.text = "";
                     task3Flag++;
                 }
                 else
@@ -516,26 +580,30 @@ public class USBScreenManager : MonoBehaviour
             }
             else if (task3Flag == 4)
             {
-                if(task3_345InputField.text == "PASSWORD1")
+                if(task3_34InputField.text == "PASSWORD1")
                 {	
-                    task3TextMessage.text = "秘密の質問：\nあなたの出身中学校の名前は？";
+                    task3_34InputField.text = "";
+                    task3_34InputField.gameObject.SetActive(false);
+                    task3_5InputField.gameObject.SetActive(true);
+                    task3TextMessage.text = "秘密の質問：\nあなたの出身中学校の名前は？\n(小文字ローマ字入力)";
                     task3ErrorMessage.text = "";
                     task3Flag++;
                 }
                 else
                 {
-                    task3ErrorMessage.text = "パスワードが正しくありません";
+                    task3ErrorMessage.text = "パスワードが正しくありません\n大文字入力されていますか？";
                 }
             }
             else if (task3Flag == 5)
             {
-                if(task3_345InputField.text == "東西南北中学校")
+                if(task3_5FixedCharacter == "東西南北" || task3_5FixedCharacter == "とうざいなんぼく" || task3_5FixedCharacter == "touzainannboku" || task3_5FixedCharacter == "touzainanboku" || task3_5FixedCharacter == "tozainannboku" || task3_5FixedCharacter == "tozainanboku" || task3_5FixedCharacter == "touzainannbokutyuu" || task3_5FixedCharacter == "touzainanbokutyuu" || task3_5FixedCharacter == "tozainannbokutyuu" || task3_5FixedCharacter == "tozainanbokutyuu"|| task3_5FixedCharacter == "touzainannbokutyuugakkou" || task3_5FixedCharacter == "touzainanbokutyuugakkou" || task3_5FixedCharacter == "tozainannbokutyuugakkou" || task3_5FixedCharacter == "tozainanbokutyuugakkou" )
                 {	
                     task3TextMessage.text = "ログインしました";
                     task3ErrorMessage.text = "";
-                    task3_345InputField.gameObject.SetActive(false);
+                    task3_5InputField.gameObject.SetActive(false);
                     task3ButtonText.text ="完了";
                     task3Flag++;
+                    taskProcess++;
                     if(!task3Finished)
                     {
                         task3Finished = true;
@@ -555,9 +623,14 @@ public class USBScreenManager : MonoBehaviour
         }    
 	}
 
+    public void FixedSmallCharacter()
+    {
+        task3_5FixedCharacter = task3_5InputField.text.ToLower();
+    }
+
 	public void OnButton4Clicked()
 	{
-        if(canButtonPush)
+        if(canButtonPush && taskProcess >= 3)
         {   
             //初めてのボタンクリックでメッセージが表示
             if(isFirstPushUSBButton4)
@@ -570,6 +643,15 @@ public class USBScreenManager : MonoBehaviour
 		    uSBTask4Panel.gameObject.SetActive(true);
         }
 	}
+    
+    //センドボタンのクリック
+    public void OnSendButtonClicked()
+    {   
+        if(canButtonPush && taskProcess >= 4)
+        {   
+            SceneManager.LoadScene("ClearScene");
+        }
+    }
 
 	//リターンボタンのクリック
 	public void OnReturnButtonClicked()
@@ -577,15 +659,27 @@ public class USBScreenManager : MonoBehaviour
         if(canButtonPush)
         {
             uSBMenuPanel.gameObject.SetActive(true);
+
+            if(task3Flag < 6)
+            {
+                task3Flag = 1;
+                task3Toggle.isOn = false; 
+                task3TextMessage.text = "1,5,10,50,100,500,1000, ? ,\n5000,10000";
+                task3ErrorMessage.text = "";
+                task3_5FixedCharacter = "";
+                task3_34InputField.text = "";
+                task3_5InputField.text = "";
+                task3_34InputField.gameObject.SetActive(true);
+                task3_5InputField.gameObject.SetActive(false);
+            }
+
             uSBTask1Panel.gameObject.SetActive(false);
             uSBTask2Panel.gameObject.SetActive(false);
             uSBTask3Panel.gameObject.SetActive(false);
             uSBTask3_1Panel.gameObject.SetActive(false);
             uSBTask3_2Panel.gameObject.SetActive(false);
             uSBTask3_345Panel.gameObject.SetActive(false);
-            task3Toggle.isOn = false; 
-            task3TextMessage.text = "1,5,10,50,100,500,1000, ? ,\n5000,10000";
-            task3ErrorMessage.text = "";
+            uSBTask4Panel.gameObject.SetActive(false);            
         }
 	}    
 }

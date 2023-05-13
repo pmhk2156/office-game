@@ -46,6 +46,7 @@ public class Task4ButtonInspector : MonoBehaviour , IPointerEnterHandler, IPoint
         else {clickCount = 0;}
         
         isFolderClicked = true;
+        folderContents.gameObject.SetActive(true);
         folderContents.GetComponent<Task4Manager>().Task4FolderClicked();
         isFolderClicked = false;
     }

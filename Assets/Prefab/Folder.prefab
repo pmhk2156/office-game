@@ -224,6 +224,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7fbd2023d1e10184ca1c3ad238b16c59, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  folderContents: {fileID: 7495644032191055269}
+  isFolderClicked: 0
 --- !u!1 &8356901945351985039
 GameObject:
   m_ObjectHideFlags: 0

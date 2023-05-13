@@ -18,13 +18,15 @@ public class Task4Manager : MonoBehaviour ,IDragHandler, IEndDragHandler
     [SerializeField]
     string contentsTextStr;
     private bool canDocumentDrug;
-    private bool isTask4Clear;
+    private bool isFirstFolderClicked;
+    public static bool isTask4Clear;
     private Vector2 firstPosition;
 
     void Awake()
     {   
         canDocumentDrug = false;
         isTask4Clear = false;
+        isFirstFolderClicked = true;
         firstPosition = folderContentsPanel.transform.position;
     }
     
@@ -33,8 +35,21 @@ public class Task4Manager : MonoBehaviour ,IDragHandler, IEndDragHandler
     {
         if(Folder_6.GetComponent<Task4ButtonInspector>().isFolderClicked)
         {   
+            folderContentsPanel.gameObject.SetActive(true);
             contentsTextStr = contentsText.text;
             canDocumentDrug = true;
+            if(isFirstFolderClicked)
+            {
+                BossManager.isErrorSounding = true;
+                isFirstFolderClicked = false;
+            }    
+        }
+        else
+        {
+            if(folderContentsPanel.activeSelf)
+            {
+                folderContentsPanel.gameObject.SetActive(false);
+            }
         }
     }
 
