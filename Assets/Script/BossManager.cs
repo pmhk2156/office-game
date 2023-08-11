@@ -98,7 +98,8 @@ public class BossManager : MonoBehaviour
     public static bool canUSBDrug;
     public static bool isUSBConnected;
     public static bool isErrorSounding;
-    private bool isFirstShowText4;
+    //0はまだイベントを見ていない状態、1はフラグが立った状態、2以上は既にイベントを見た状態。
+    private int text4Flag;
 
     private string readingText;
 
@@ -115,7 +116,7 @@ public class BossManager : MonoBehaviour
         canUSBDrug = true;
         isUSBConnected = false;
         isErrorSounding = false;
-        isFirstShowText4 = true;
+        text4Flag = 0;
 
         //テキスト読み込み
         loadText1 = textAsset1.text;
@@ -178,13 +179,11 @@ public class BossManager : MonoBehaviour
 
     private IEnumerator CreateCoroutine()
     {
-
         if(!isFirstTalk)
         {
             yield return BossComingAudioSet(); 
         }
 
-    
         boss.gameObject.SetActive(true);
         //時間を止める・USBをドラッグできなくする
         canTimePass = false;
@@ -199,11 +198,19 @@ public class BossManager : MonoBehaviour
         this.boss.GetComponent<SpriteRenderer>().color = new Color(1f, 1f, 1f, 0f);
         this.boss.gameObject.SetActive(false);
 
+        if(ComputerBehavior.confidenceValue > 48)
+        {
+            text4Flag++;
+        }
         
         //次の上司の来る時間を、信頼値に応じて設定
-        if(isFirstTalk)
+        if(isSecondTalk)
         {
             nextSecondBossComing  = 60f;
+        }
+        else if(text4Flag == 1 && ComputerBehavior.confidenceValue > 48)
+        {
+            nextSecondBossComing  = 0f;
         }
         else if(ComputerBehavior.confidenceValue < 13)
         {
@@ -232,20 +239,35 @@ public class BossManager : MonoBehaviour
             nextSecondBossComing = nextSecondBossComing - randomChangeBossComingTime;
         }
 
-        //上司の来る時間がランダムに変わる
-        randomChangeBossComingTime = Random.Range(0f,10f) - 5f;
+        if(text4Flag == 1)
+        {
+            //パスワードを伝えに来る時だけ、４秒で固定
+            randomChangeBossComingTime = 4f;
+        }
+        else
+        {
+            //上司の来る時間がランダムに変わる
+            randomChangeBossComingTime = Random.Range(0f,10f) - 5f;
+        }
+
         nextBossTime = MinuteHandManager.elapsedTime + nextSecondBossComing + randomChangeBossComingTime;
+        
         //次の上司の来る時間が17時を超える際、17時に来るように設定
-        if(nextBossTime >= 520)
+        if(nextBossTime >= 530)
         {
             nextBossTime = 540;
         }
 
         //上司の足音が鳴る時間を設定
-        randomFootstepsTime = Random.Range(2f,8.5f);
+        if(text4Flag == 1)
+        {
+            randomFootstepsTime = 2;
+        }
+        else
+        {
+            randomFootstepsTime = Random.Range(2f,8.5f);
+        }        
         nextBossTime = nextBossTime - randomFootstepsTime;
-
-        isFirstTalk = false;
 
         //BGMの音量を元に戻す
         audio_BGM.volume = bGMVolume;
@@ -255,6 +277,7 @@ public class BossManager : MonoBehaviour
         canUSBDrug = true;
         cannotInputObject.gameObject.SetActive(false);
 
+        /*
         //信頼度が高い時にパスワードを教える
         if(isFirstShowText4 && ComputerBehavior.confidenceValue > 48)
         {   
@@ -291,7 +314,7 @@ public class BossManager : MonoBehaviour
             canTimePass = true;
             canUSBDrug = true;
             cannotInputObject.gameObject.SetActive(false);
-        }
+        }*/
 
         //コルーチンを停止して初期化
         StopCoroutine(coroutine);
@@ -318,11 +341,17 @@ public class BossManager : MonoBehaviour
             if(isFirstTalk)
             {         
                 yield return ShowMessages(splitText1);
-            } 
+                isFirstTalk = false;
+            }
             else if(isSecondTalk)
             {       
                 yield return ShowMessages(splitText7);
                 isSecondTalk = false;
+            }
+            else if(text4Flag == 1)
+            {
+                yield return ShowMessages(splitText6);
+                text4Flag++;
             }
             else if(ComputerBehavior.confidenceValue < 27 )
             {

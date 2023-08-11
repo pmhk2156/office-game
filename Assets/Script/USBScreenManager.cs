@@ -174,22 +174,19 @@ public class USBScreenManager : MonoBehaviour
     {   
         if(firstReadUSBText1)
 		{   
-            uSBCoroutine = USBAction(uSBText1 ,firstReadUSBText1);
+            uSBCoroutine = USBAction(uSBText1);
 			StartCoroutine(uSBCoroutine);
-            firstReadUSBText1 = false;
             firstReadUSBText2 = true;
 		} 
 		else if(firstReadUSBText2)
 		{
-			uSBCoroutine = USBAction(uSBText2 ,firstReadUSBText2);
+			uSBCoroutine = USBAction(uSBText2);
 			StartCoroutine(uSBCoroutine);
-            firstReadUSBText2 = false;
 		} 
 		else if(firstReadUSBText3)
 		{
-			uSBCoroutine = USBAction(uSBText3 ,firstReadUSBText3);
+			uSBCoroutine = USBAction(uSBText3);
 			StartCoroutine(uSBCoroutine);
-            firstReadUSBText3 = false;	
 		}
     }
 
@@ -313,16 +310,35 @@ public class USBScreenManager : MonoBehaviour
         return false;
     }
 
-	protected IEnumerator USBAction(string[] uSBText ,bool uSBFlag)
+	protected IEnumerator USBAction(string[] uSBText)
 	{	
-		//ShowMessagesコルーチンを開始
-		if(uSBFlag)
-		{
-			yield return ShowMessages(uSBText);
-		}
+        //ボタンをクリックできなくする・時間を止める・入力できなくする
+        canButtonPush = false;
+		BossManager.canTimePass = false;
+        cannotInputObject.gameObject.SetActive(true);
 
+		//ShowMessagesコルーチンを開始
+		yield return ShowMessages(uSBText);
+		
 		//一度表示したメッセージが再度表示されないようにする
-		uSBFlag = false;
+		if(firstReadUSBText1)
+        {
+            firstReadUSBText1 = false;
+        }
+        else if(firstReadUSBText2)
+        {
+            firstReadUSBText2 = false;
+        }
+        else if(firstReadUSBText3)
+        {
+            firstReadUSBText3 = false;
+        }
+
+        //ボタンをクリックできるようにする・時間を再開する・入力可能にする
+        canButtonPush = true;
+		BossManager.canTimePass = true;
+        cannotInputObject.gameObject.SetActive(false);      
+
         yield break;
 	}	
 
@@ -330,12 +346,6 @@ public class USBScreenManager : MonoBehaviour
 	{
 		//テキストパネルを表示
 		uSBTextPanel.gameObject.SetActive(true);
-        
-        //ボタンをクリックできなくする・時間を止める・USBを動かなくする・入力できなくする
-        canButtonPush = false;
-		BossManager.canTimePass = false;
-        BossManager.canUSBDrug = false;
-        cannotInputObject.gameObject.SetActive(true);
 
 		//メッセージ送り
 		for (int i = 0; i < message.Length; ++i)
@@ -376,7 +386,7 @@ public class USBScreenManager : MonoBehaviour
         	yield return null; 
 		
         	//次のクリックまで待機
-        	yield return new WaitUntil(() => Input.GetMouseButtonDown(0));
+        	yield return new WaitUntil(() => IsClicked());
 		}
         
         if(!firstReadUSB)
@@ -384,12 +394,7 @@ public class USBScreenManager : MonoBehaviour
 		    uSBTextPanel.gameObject.SetActive(false);
         }
 
-		//ボタンをクリックできるようにする・時間を再開する・USBを動かせる・入力可能にする
         firstReadUSB = false;
-        canButtonPush = true;
-		BossManager.canTimePass = true;
-        BossManager.canUSBDrug = true;
-        cannotInputObject.gameObject.SetActive(false);        
 	}
 
 	public void OnButton1Clicked()
@@ -596,7 +601,7 @@ public class USBScreenManager : MonoBehaviour
             }
             else if (task3Flag == 5)
             {
-                if(task3_5FixedCharacter == "東西南北" || task3_5FixedCharacter == "とうざいなんぼく" || task3_5FixedCharacter == "touzainannboku" || task3_5FixedCharacter == "touzainanboku" || task3_5FixedCharacter == "tozainannboku" || task3_5FixedCharacter == "tozainanboku" || task3_5FixedCharacter == "touzainannbokutyuu" || task3_5FixedCharacter == "touzainanbokutyuu" || task3_5FixedCharacter == "tozainannbokutyuu" || task3_5FixedCharacter == "tozainanbokutyuu"|| task3_5FixedCharacter == "touzainannbokutyuugakkou" || task3_5FixedCharacter == "touzainanbokutyuugakkou" || task3_5FixedCharacter == "tozainannbokutyuugakkou" || task3_5FixedCharacter == "tozainanbokutyuugakkou" )
+                if(task3_5FixedCharacter == "上下市立東西南北" || task3_5FixedCharacter == "東西南北" || task3_5FixedCharacter == "じょうげしりつとうざいなんぼく" || task3_5FixedCharacter == "うえしたしりつとうざいなんぼく" || task3_5FixedCharacter == "とうざいなんぼく" || task3_5FixedCharacter == "touzainannboku" || task3_5FixedCharacter == "touzainanboku" || task3_5FixedCharacter == "tozainannboku" || task3_5FixedCharacter == "tozainanboku" || task3_5FixedCharacter == "touzainannbokutyuu" || task3_5FixedCharacter == "touzainanbokutyuu" || task3_5FixedCharacter == "tozainannbokutyuu" || task3_5FixedCharacter == "tozainanbokutyuu"|| task3_5FixedCharacter == "touzainannbokutyuugakkou" || task3_5FixedCharacter == "touzainanbokutyuugakkou" || task3_5FixedCharacter == "tozainannbokutyuugakkou" || task3_5FixedCharacter == "tozainanbokutyuugakkou" || task3_5FixedCharacter == "zyougesiritutouzainannboku" || task3_5FixedCharacter == "zyougesiritutouzainanboku" || task3_5FixedCharacter == "zyougesiritutozainannboku" || task3_5FixedCharacter == "zyougesiritutozainanboku" || task3_5FixedCharacter == "zyougesiritutouzainannbokutyuu" || task3_5FixedCharacter == "zyougesiritutouzainanbokutyuu" || task3_5FixedCharacter == "zyougesiritutozainannbokutyuu" || task3_5FixedCharacter == "zyougesiritutozainanbokutyuu"|| task3_5FixedCharacter == "zyougesiritutouzainannbokutyuugakkou" || task3_5FixedCharacter == "zyougesiritutouzainanbokutyuugakkou" || task3_5FixedCharacter == "zyougesiritutozainannbokutyuugakkou" || task3_5FixedCharacter == "zyougesiritutozainanbokutyuugakkou" || task3_5FixedCharacter == "uesitasiritutouzainannboku" || task3_5FixedCharacter == "uesitasiritutouzainanboku" || task3_5FixedCharacter == "uesitasiritutozainannboku" || task3_5FixedCharacter == "uesitasiritutozainanboku" || task3_5FixedCharacter == "uesitasiritutouzainannbokutyuu" || task3_5FixedCharacter == "uesitasiritutouzainanbokutyuu" || task3_5FixedCharacter == "uesitasiritutozainannbokutyuu"  || task3_5FixedCharacter == "uesitasiritutouzainannbokutyuugakkou" || task3_5FixedCharacter == "uesitasiritutozainannbokutyuugakkou"|| task3_5FixedCharacter == "uesitasiritutouzainanbokutyuugakkou"|| task3_5FixedCharacter == "uesitasiritutozainanbokutyuugakkou")
                 {	
                     task3TextMessage.text = "ログインしました";
                     task3ErrorMessage.text = "";
@@ -644,11 +649,25 @@ public class USBScreenManager : MonoBehaviour
         }
 	}
     
+    protected IEnumerator GameClearAction()
+    {
+        //ボタンをクリックできなくする・時間を止める・入力できなくする
+        canButtonPush = false;
+		BossManager.canTimePass = false;
+        cannotInputObject.gameObject.SetActive(true);
+
+		//ShowMessagesコルーチンを開始
+		//yield return ShowMessages(sendButtonText1);
+        yield return null;
+        
+    }
+
     //センドボタンのクリック
     public void OnSendButtonClicked()
     {   
         if(canButtonPush && taskProcess >= 4)
         {   
+            StartCoroutine(GameClearAction());
             SceneManager.LoadScene("ClearScene");
         }
     }

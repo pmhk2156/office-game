@@ -645,7 +645,7 @@ MonoBehaviour:
       m_Calls: []
   m_FontData:
     m_Font: {fileID: 12800000, guid: a6e5996ded2fd8146bc955fd8a78e820, type: 3}
-    m_FontSize: 186
+    m_FontSize: 110
     m_FontStyle: 1
     m_BestFit: 0
     m_MinSize: 1
@@ -656,7 +656,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: CLEAR!!
+  m_Text: "ToBeContinued\u2026"
 --- !u!222 &959956831
 CanvasRenderer:
   m_ObjectHideFlags: 0

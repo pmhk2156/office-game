@@ -22,9 +22,6 @@ public class PhoneBehavior : MonoBehaviour
     private bool isPhoneRing = false;
     private bool canMouseClick = true;
 
-
-    // セリフ : Unityのインスペクタ(UI上)で会話文を定義する 
-　　// （次項 : インスペクタでscriptを追加して、設定をする で説明）
     private string readingText;
 
     [SerializeField]
