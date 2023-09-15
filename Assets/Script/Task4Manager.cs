@@ -62,7 +62,8 @@ public class Task4Manager : MonoBehaviour ,IDragHandler, IEndDragHandler
     //ドラッグで書類を移動
     public void OnDrag(PointerEventData eventData)
     {   
-        if(canDocumentDrug){
+        if(canDocumentDrug)
+        {
             Vector3 TargetPos = Camera.main.ScreenToWorldPoint (eventData.position);
 	        TargetPos.z = 0;
 	        folderContentsPanel.transform.position = TargetPos;
@@ -75,10 +76,11 @@ public class Task4Manager : MonoBehaviour ,IDragHandler, IEndDragHandler
         var raycastResults = new List<RaycastResult>();
         EventSystem.current.RaycastAll(eventData, raycastResults);
 
-        //USBとコンピューターが重なっていれば、USBを挿入
+        //USBにフォルダーをドラッグしてクリア
         foreach (var hit in raycastResults)
         {
-            if (hit.gameObject.CompareTag("Folder")){
+            if (hit.gameObject.CompareTag("Folder"))
+            {
                 isTask4Clear = true;
             }
         }
