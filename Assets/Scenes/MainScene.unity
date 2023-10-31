@@ -16865,7 +16865,6 @@ MonoBehaviour:
   audio_BGM: {fileID: 2017669997}
   audio_TextSound: {fileID: 1223192783}
   audio_Footsteps: {fileID: 1223192784}
-  audio_ErrorSound: {fileID: 1223192783}
   textSound: {fileID: 8300000, guid: 083523714a7e95d48831165417decbc0, type: 3}
   footsteps: {fileID: 8300000, guid: a169fb9beb18ef24a93e20c9d0d1ac63, type: 3}
   errorSound: {fileID: 8300000, guid: 87deb6c8d83a0f449ba145f59a766ca6, type: 3}
@@ -18627,6 +18626,50 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1344150553}
   m_CullTransparentMesh: 1
+--- !u!1 &1346104398
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1346104400}
+  - component: {fileID: 1346104399}
+  m_Layer: 0
+  m_Name: GameManagers
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1346104399
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1346104398}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 198972bd015504f5ab8c5b6cad0c539a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+--- !u!4 &1346104400
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1346104398}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 2.7133365, y: -0.21880937, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_RootOrder: 9
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1368079218
 GameObject:
   m_ObjectHideFlags: 0
@@ -28237,6 +28280,8 @@ MonoBehaviour:
   Folder_6: {fileID: 1857283245}
   contentsText: {fileID: 1533760756}
   contentsTextStr: "\u3010\u91CD\u8981\u3011\u3010\u6301\u51FA\u53B3\u7981\u30115G\u95A2\u9023\u6280\u8853\u3000\u4ED5\u69D8\u66F8"
+  audioSourse: {fileID: 0}
+  errorSound: {fileID: 0}
 --- !u!1 &1940622205
 GameObject:
   m_ObjectHideFlags: 0

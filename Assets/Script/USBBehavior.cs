@@ -13,17 +13,22 @@ public class USBBehavior :  MonoBehaviour, IDragHandler, IEndDragHandler
     [SerializeField]
     GameObject uSBScreenCanvas;
 
+    public bool canUSBDrug;
+    public bool isUSBConnected;
+
     private Vector2 firstPosition;
-    
+
     public void Awake()
     {
+        canUSBDrug = true;
+        isUSBConnected = false;
         firstPosition = transform.position;
     }
 
     //ドラッグでUSBを移動
     public void OnDrag(PointerEventData eventData)
     {   
-        if(BossManager.canUSBDrug)
+        if(canUSBDrug)
         {
             Vector3 TargetPos = Camera.main.ScreenToWorldPoint (eventData.position);
 	        TargetPos.z = 0;
@@ -34,9 +39,9 @@ public class USBBehavior :  MonoBehaviour, IDragHandler, IEndDragHandler
     //ドラッグを離した際、USBを固定
     public void OnEndDrag(PointerEventData eventData)
     {
-        if(BossManager.canUSBDrug)
+        if(canUSBDrug)
         {
-            BossManager.isUSBConnected = false;
+            isUSBConnected = false;
             //重なっている全てのUIをListに格納
             var raycastResults = new List<RaycastResult>();
             EventSystem.current.RaycastAll(eventData, raycastResults);
@@ -46,11 +51,11 @@ public class USBBehavior :  MonoBehaviour, IDragHandler, IEndDragHandler
             {
                 if (hit.gameObject.CompareTag("Image"))
                 {
-                    BossManager.isUSBConnected = true;
+                    isUSBConnected = true;
                 }
             }
 
-            if(BossManager.isUSBConnected)
+            if(isUSBConnected)
             {   
                 //USBCanvasをアクティブ化
                 uSBScreenCanvas.gameObject.SetActive (true);

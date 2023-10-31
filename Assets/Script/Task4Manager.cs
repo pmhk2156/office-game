@@ -1,4 +1,3 @@
-using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.EventSystems;
@@ -6,7 +5,10 @@ using UnityEngine.UI;
 
 
 public class Task4Manager : MonoBehaviour ,IDragHandler, IEndDragHandler
-{   
+{
+    [SerializeField]
+    USBScreenManager uSBScreenManager;
+
     [SerializeField]
     GameObject folderContents;
     [SerializeField]
@@ -16,10 +18,15 @@ public class Task4Manager : MonoBehaviour ,IDragHandler, IEndDragHandler
     [SerializeField]
     Text contentsText;
     [SerializeField]
-    string contentsTextStr;
+    AudioSource audioSourse;
+    [SerializeField]
+    AudioClip errorSound;
+    public GameObject uSBTask4Panel;
+
     private bool canDocumentDrug;
     private bool isFirstFolderClicked;
-    public static bool isTask4Clear;
+    public bool isTask4Clear;
+    public bool isErrorSounding;
     private Vector2 firstPosition;
 
     void Awake()
@@ -27,20 +34,36 @@ public class Task4Manager : MonoBehaviour ,IDragHandler, IEndDragHandler
         canDocumentDrug = false;
         isTask4Clear = false;
         isFirstFolderClicked = true;
+        isErrorSounding = false;
         firstPosition = folderContentsPanel.transform.position;
     }
-    
+
+    public void OnButton4Clicked()
+    {
+        if (uSBScreenManager.canButtonPush && uSBScreenManager.taskProcess >= 3)
+        {
+            //初めてのボタンクリックでメッセージが表示
+            if (uSBScreenManager.isFirstPushUSBButton4)
+            {
+                StartCoroutine(uSBScreenManager.ShowMessages(uSBScreenManager.buttonClickText4));
+                uSBScreenManager.isFirstPushUSBButton4 = false;
+            }
+
+            uSBScreenManager.uSBMenuPanel.gameObject.SetActive(false);
+            uSBTask4Panel.gameObject.SetActive(true);
+        }
+    }
 
     public void Task4FolderClicked()
     {
         if(Folder_6.GetComponent<Task4ButtonInspector>().isFolderClicked)
         {   
             folderContentsPanel.gameObject.SetActive(true);
-            contentsTextStr = contentsText.text;
             canDocumentDrug = true;
-            if(isFirstFolderClicked)
+            if (isFirstFolderClicked)
             {
-                BossManager.isErrorSounding = true;
+                audioSourse.PlayOneShot(errorSound);
+                isErrorSounding = true;
                 isFirstFolderClicked = false;
             }    
         }
